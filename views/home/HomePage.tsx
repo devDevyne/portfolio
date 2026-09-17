@@ -1,12 +1,20 @@
 import AboutSection from "@/features/profile/AboutSection";
 import Link from "next/link";
 import ProfileHero from "@/features/profile/ProfileHero";
+import { getSiteProfile } from "@/services/site-profile";
+import { connection } from "next/server";
 
-export default function HomePage() {
+export default async function HomePage() {
+  await connection();
+  const items = await getSiteProfile();
+  const aboutItems = items.filter((item) => ["intro_title", "intro", "strength"].includes(item.type));
+  const email = items.find((item) => item.type === "email" && /^[^\s@?&#]+@[^\s@?&#]+\.[^\s@?&#]+$/.test(item.content));
+  const links = items.filter((item) => item.type === "link"
+    && URL.canParse(item.content) && new URL(item.content).protocol === "https:");
   return (
     <>
       <ProfileHero />
-      <AboutSection />
+      <AboutSection items={aboutItems} />
       <section id="work" aria-labelledby="work-heading" className="grid gap-7 border-t border-border py-12 md:grid-cols-[1fr_2fr] md:gap-12">
         <h2 id="work-heading" className="pt-1 text-[11px] font-medium tracking-[0.22em] text-muted">WORK</h2>
         <div>
@@ -19,21 +27,17 @@ export default function HomePage() {
         <h2 id="contact-heading" className="pt-1 text-[11px] font-medium tracking-[0.22em] text-muted">CONTACT</h2>
         <div>
           <p className="text-xl font-medium tracking-tight">함께 나눌 이야기를 기다립니다.</p>
-          <a
-            href="mailto:devyne177@gmail.com"
+          {email && <a
+            href={`mailto:${email.content}`}
             className="mt-5 inline-flex min-h-11 items-center text-lg text-accent underline decoration-accent/30 underline-offset-8 transition-colors hover:decoration-accent sm:text-xl"
           >
-            devyne177@gmail.com
-          </a>
-          <ul className="mt-5 flex flex-wrap gap-x-7 gap-y-2 text-sm text-muted">
-            {[
-              { label: "GitHub", href: "https://github.com/devDevyne" },
-              { label: "Blog", href: "https://dev-devyne.tistory.com/" },
-              { label: "LinkedIn", href: "https://www.linkedin.com/in/%EC%A4%91%EA%B2%B8-%EC%95%88-9a681a265/" },
-            ].map(({ label, href }) => (
-              <li key={label}>
+            {email.content}
+          </a>}
+          {links.length > 0 && <ul className="mt-5 flex flex-wrap gap-x-7 gap-y-2 text-sm text-muted">
+            {links.map(({ id, label, content }) => (
+              <li key={id}>
                 <a
-                  href={href}
+                  href={content}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex min-h-11 items-center gap-2 transition-colors hover:text-accent"
@@ -44,7 +48,8 @@ export default function HomePage() {
                 </a>
               </li>
             ))}
-          </ul>
+          </ul>}
+          {!email && links.length === 0 && <p className="mt-5 text-sm text-muted">공개된 연락처가 없습니다.</p>}
         </div>
       </section>
     </>

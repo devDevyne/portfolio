@@ -2,10 +2,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { ProjectMeta } from "@/lib/content/projects";
 
-export default function ProjectPage({ project, children }: { project: ProjectMeta; children: ReactNode }) {
+export default function ProjectPage({ project, children, companyName }: { project: ProjectMeta; children: ReactNode; companyName: string }) {
   return (
     <article>
-      <Link href="/work" className="text-xs text-muted hover:text-accent">(주)엔씨엘 / 프로젝트</Link>
+      <Link href="/work" className="text-xs text-muted hover:text-accent">{companyName} / 프로젝트</Link>
       {project.status === "draft" && <p className="mt-5 border-l-2 border-accent bg-accent/5 px-4 py-3 text-xs leading-6 text-accent">개발용 초안 미리보기 · 배포 시에는 공개된 프로젝트만 표시됩니다.</p>}
       <h1 className="mt-6 text-3xl leading-snug font-semibold tracking-tight sm:text-4xl">{project.title}</h1>
       <p className="mt-5 text-base leading-8 text-muted">{project.summary}</p>
@@ -28,4 +28,3 @@ export default function ProjectPage({ project, children }: { project: ProjectMet
     </article>
   );
 }
-

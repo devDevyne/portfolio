@@ -6,9 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:profile": "node --conditions=react-server scripts/check-site-profile.mjs",
+    "test:experiences": "node --conditions=react-server scripts/check-experiences.mjs"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0",
     "next": "16.3.5",
     "next-mdx-remote": "^6.0.0",
     "react": "19.2.8",
