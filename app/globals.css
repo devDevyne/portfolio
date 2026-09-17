@@ -1,26 +1,57 @@
 @import "tailwindcss";
 
 :root {
+  color-scheme: light;
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #222b2a;
+  --muted: #626d6a;
+  --accent: #28685f;
+  --border: #e3e8e5;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --font-sans: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
+  ::selection { background: #dbece5; color: #183f38; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
+  section[id] { scroll-margin-top: 2rem; }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: 0s !important; }
+}
+
+@layer components {
+  .project-prose { font-size: 0.9375rem; line-height: 2; }
+  .project-prose h2 { margin-top: 3rem; margin-bottom: 1rem; padding-top: 1.75rem; border-top: 1px solid var(--border); font-size: 1.4rem; font-weight: 600; line-height: 1.5; }
+  .project-prose h3 { margin-top: 2rem; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600; line-height: 1.7; }
+  .project-prose p { margin-block: 1rem; color: var(--muted); }
+  .project-prose strong { color: var(--foreground); font-weight: 600; }
+  .project-prose ul, .project-prose ol { margin-block: 1rem; padding-left: 1.4rem; color: var(--muted); }
+  .project-prose ul { list-style: disc; }
+  .project-prose ol { list-style: decimal; }
+  .project-prose li { margin-block: .45rem; }
+  .project-prose code { background: #f1f5f3; padding: .15rem .35rem; font-size: .85em; overflow-wrap: anywhere; }
+  .project-prose pre { overflow-x: auto; background: #f1f5f3; padding: 1rem; }
+  .project-prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
+  .project-prose details { margin-block: 1.5rem; border: 1px solid var(--border); padding: 1rem 1.25rem; }
+  .project-prose summary { cursor: pointer; color: var(--accent); font-size: .875rem; font-weight: 500; }
+  .project-prose img { display: block; max-width: 100%; height: auto; margin-block: 1.5rem; }
 }
