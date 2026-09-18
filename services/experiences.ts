@@ -18,8 +18,7 @@ export type Experience = {
   period: string;
 };
 
-// The existing /work route and local MDX belong to the NCL experience (id 1).
-// Replace this route mapping when projects gain experience_id in the database.
+// The /work overview currently shows the NCL experience (id 1).
 export const WORK_EXPERIENCE_ID = 1;
 
 export const getExperience = cache(async (id: number): Promise<Experience | null> => {

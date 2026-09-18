@@ -1,6 +1,6 @@
 # 포트폴리오 데이터베이스 정의안
 
-작성일: 2026-09-17. 상태: site_profile과 experiences의 테이블·RLS·초기 데이터·화면 연결 완료. about_content와 projects는 검토용 설계다.
+작성일: 2026-09-17. 갱신일: 2026-09-18. 상태: site_profile과 experiences의 테이블·RLS·초기 데이터·화면 연결 완료. projects는 테이블·RLS·MDX 5건 이전 및 화면 연결 완료다. about_content는 검토용 설계다.
 
 ## 1. 범위와 기준
 
@@ -9,7 +9,7 @@
 - 1차: 콘텐츠 테이블, 공개 읽기 정책, 데이터 이전, 화면 조회 연결.
 - 2차: Vercel 배포.
 - 3차: Supabase Auth와 관리자 편집 화면. 관리자 쓰기 권한은 그때 추가한다.
-- DB 이전 자체를 발행으로 취급하지 않는다. 프로젝트 5개와 긴 소개 문서는 현재 초안 상태를 유지한다.
+- DB 이전 자체를 발행으로 취급하지 않는다. 프로젝트는 비공개로 이전한 뒤 사용자가 공개했으며, 긴 소개 문서는 초안 상태를 유지한다.
 - 실제 기여·성과·기간을 새로 추정하지 않는다. 소속·공식 직책은 확인 전까지 NULL이다.
 
 ## 2. 관리 대상 분류
@@ -43,7 +43,7 @@
 | `created_at` | `timestamptz` | NOT NULL / `now()` | DB에 최초 저장한 시각 |
 | `updated_at` | `timestamptz` | NOT NULL / `now()` | 마지막 수정 시각. UPDATE 트리거로 갱신 |
 
-site_profile과 experiences는 use_yn·disp_yn으로 관리하고 status를 두지 않는다. about_content와 projects의 콘텐츠 상태 `status`는 `text NOT NULL DEFAULT 'draft'`이며 CHECK로 `draft`, `published`만 허용한다. 예약 발행은 범위에 없다. 목록 순서는 `sort_order ASC, id ASC`로 명시하며 `sort_order`는 중복 허용, 0 이상 정수다.
+site_profile·experiences·projects는 use_yn·disp_yn으로 관리하고 status를 두지 않는다. about_content의 콘텐츠 상태 `status`는 `text NOT NULL DEFAULT 'draft'`이며 CHECK로 `draft`, `published`만 허용한다. 예약 발행은 범위에 없다. 목록 순서는 `sort_order ASC, id ASC`로 명시하며 `sort_order`는 중복 허용, 0 이상 정수다.
 
 길이 제한 문자열은 각 테이블의 varchar 정의를 따른다. use_yn·disp_yn은 `char(1)`이다. 긴 본문은 `text`, 여러 문자열은 순서가 보존되는 `text[]`를 사용한다. 기술명·모듈·기여를 독립적으로 검색·관리할 요구가 없으므로 연결 테이블까지 나누지 않는다. 목록 배열은 빈 배열 허용, NULL 원소와 빈 문자열은 입력 검증에서 거부한다.
 
@@ -102,7 +102,7 @@ site_profile과 experiences는 use_yn·disp_yn으로 관리하고 status를 두�
 
 적용 완료: Supabase `create_experiences` 마이그레이션. SQL 사본은 `docs/sql/create-experiences.sql`이다. 기간·Y/N·정렬·회사명 길이 제약, 수정 시각 트리거, anon·authenticated의 Y/Y 조회 및 쓰기 권한 차단을 검증했다. 검증 데이터는 롤백했고 이후 사용자 요청으로 엔씨엘 경력 1건(id=1)을 저장했다. 보안 advisor 지적 사항은 없었다. 사용자가 disp_yn을 Y로 변경한 뒤 서버 조회와 Work 본문·사이드바를 연결하고 실제 HTML을 대조했다.
 
-회사 화면은 기본 경력 정보와 요약 제목·본문만 표시한다. 주요 기술과 주요 기여 목록은 회사 경력에서 제외하고 프로젝트에서 관리한다. 하단 참여 프로젝트 목록은 향후 projects.experience_id로 조회하며, 현재 앱은 DB 이전 전까지 기존 MDX 조회를 유지한다.
+회사 화면은 기본 경력 정보와 요약 제목·본문만 표시한다. 주요 기술과 주요 기여 목록은 회사 경력에서 제외하고 프로젝트에서 관리한다. 하단 참여 프로젝트 목록과 사이드바는 projects.experience_id로 조회한다.
 
 | 컬럼 | 타입 | 제약 | 기본값 | 코멘트 |
 |---|---|---|---|---|
@@ -131,32 +131,37 @@ slug·status·technologies·highlights는 experiences에 두지 않는다. 초�
 
 ## 7. projects — 프로젝트 메타데이터와 본문
 
+적용 완료: Supabase `create_projects` 마이그레이션. SQL 사본은 `docs/sql/create-projects.sql`이다. 공개 조회 RLS, 쓰기 권한 차단, 기간·회사 연결·slug 중복·경력 삭제 제한 및 수정 시각 트리거를 검증했다. 검증 데이터는 롤백했다.
+
+2026-09-18 데이터 이전 완료: MDX 5개를 아래 순서대로 id 1~5, sort_order 0~4로 저장했다. 회사명과 재직 기간으로 기존 엔씨엘 경력을 확인하여 experience_id=1로 연결했다. use_yn='Y', disp_yn='N'으로 초안 상태를 유지한다. frontmatter를 제외한 본문은 공백·줄바꿈·HTML 태그까지 보존했으며, 모든 이전 컬럼을 원본 추출값과 대조해 일치를 확인했다. anon 조회 결과는 0건이다. 이후 사용자가 disp_yn을 Y로 변경했다. 앱은 services/projects.ts에서 공개 데이터를 조회하여 목록·사이드바·상세·메타데이터에 연결한다. 본문은 react-markdown → rehype-raw → rehype-sanitize로 렌더링하며 원본 MDX는 보존한다.
+
 | 컬럼 | 타입 | NULL / 기본값 | 의미 |
 |---|---|---|---|
-| `id` | `uuid` | PK / `gen_random_uuid()` | 프로젝트 식별자 |
+| `id` | `bigint` | PK / GENERATED ALWAYS AS IDENTITY | 자동 증가 프로젝트 식별자 |
 | `experience_id` | `bigint` | NULL 허용, FK | `experiences.id` 참조 |
-| `category` | `text` | NOT NULL | CHECK `company`, `personal` |
-| `slug` | `text` | NOT NULL, UNIQUE | 기존 slug 유지, 상세 URL에 사용 |
-| `title` | `text` | NOT NULL | 공개용 프로젝트명 |
+| `category` | `varchar(20)` | NOT NULL | CHECK `company`, `personal` |
+| `slug` | `varchar(100)` | NOT NULL, UNIQUE | 기존 slug 유지, 상세 URL에 사용 |
+| `title` | `varchar(100)` | NOT NULL | 공개용 프로젝트명 |
 | `summary` | `text` | NOT NULL | 목록·상세 상단 요약 |
-| `record_start_month` | `date` | NOT NULL | 작업 기록 시작 월 |
-| `record_end_month` | `date` | NULL 허용 | 기록 종료 월. NULL은 진행 중 |
-| `period_basis` | `text` | NOT NULL | 커밋 기록 범위 등 기간의 근거 설명 |
-| `role` | `text` | NOT NULL | 프로젝트 담당 역할 |
+| `start_month` | `date` | NOT NULL | 프로젝트 참여 시작 월 |
+| `end_month` | `date` | NULL 허용 | 프로젝트 참여 종료 월. NULL은 진행 중 |
+| `role` | `varchar(200)` | NOT NULL | 프로젝트 담당 역할 |
 | `technologies` | `text[]` | NOT NULL / `{}` | 기술 목록 |
-| `modules` | `text[]` | NOT NULL / `{}` | 담당 모듈 목록 |
 | `highlights` | `text[]` | NOT NULL / `{}` | 핵심 기여 |
 | `body_markdown` | `text` | NOT NULL | 프로젝트 상세 본문 |
-| `visibility` | `text` | NOT NULL / private | CHECK public, anonymized, restricted, private |
-| `status` | `text` | NOT NULL / draft | 발행 여부 |
+| `use_yn` | `char(1)` | NOT NULL / 'Y' | CHECK Y/N, 사용 여부 |
+| `disp_yn` | `char(1)` | NOT NULL / 'N' | CHECK Y/N, 공개 표시 여부 |
 | `sort_order` | `integer` | NOT NULL / 0 | 목록 순서 |
+| `created_at` | `timestamptz` | NOT NULL / now() | 생성 시각 |
+| `updated_at` | `timestamptz` | NOT NULL / now() | UPDATE 트리거로 갱신 |
 
 공통 시각 컬럼 포함. 제약조건:
 
 - 회사 프로젝트는 experience_id 필수, 개인 프로젝트는 NULL로 제한한다.
 - FK 삭제 정책은 `ON DELETE RESTRICT`. 회사 삭제로 프로젝트가 유실되거나 개인 프로젝트로 바뀌지 않게 한다.
 - slug는 소문자 영문·숫자와 단일 하이픈 구분 형식(`^[a-z0-9]+(-[a-z0-9]+)*$`)으로 제한한다. URL 유지를 위해 이전 시 기존 slug를 변경하지 않는다.
-- 기록 월은 월초 날짜로 저장하며 종료 월은 시작 월 이상이어야 한다. 참여 기간이나 연속 투입 기간으로 이름을 바꾸지 않는다.
+- 참여 월은 월초 날짜로 저장하며 종료 월은 시작 월 이상이어야 한다. 기존 기록 기반 기간을 이전할 때에는 실제 참여 기간과 일치하는지 확인한다.
+- visibility·period_basis·status는 두지 않는다. 작성 중인 프로젝트는 disp_yn = 'N'으로 관리한다.
 - PK·UNIQUE 외에 `experience_id` 인덱스를 추가한다. 검색·배열 인덱스는 실제 조회 요구가 생기면 추가한다.
 
 초기 이전 대상:
@@ -173,7 +178,9 @@ slug·status·technologies·highlights는 experiences에 두지 않는다. 초�
 
 ## 8. MDX 이전과 이미지
 
-frontmatter는 위 컬럼으로 분리하고 본문은 Markdown 문자열로 저장한다. modules·highlights 배열과 본문에 있는 설명은 서로 다른 요약 수준이므로 자동 삭제하지 않는다.
+frontmatter는 위 컬럼으로 분리하고 본문은 Markdown 문자열로 저장한다. highlights 배열과 본문에 있는 설명은 서로 다른 요약 수준이므로 자동 삭제하지 않는다. modules 메타데이터는 이전하지 않으며, 본문의 모듈별 요약은 그대로 보존한다.
+
+후속 변경: `drop_projects_modules` 마이그레이션으로 modules 컬럼을 삭제했다. 변경 SQL은 `docs/sql/drop-projects-modules.sql`이며 최초 생성 SQL은 적용 이력으로 유지한다.
 
 - 현재 문서는 기본 Markdown과 `<details>`, `<summary>`를 사용한다. JSX import나 실행 코드를 DB 본문에 넣지 않는다.
 - DB 본문은 기존 `compileMDX`로 실행하지 않는다. Markdown 렌더러와 허용 목록 기반 HTML 정제를 사용한다.
@@ -196,11 +203,11 @@ frontmatter는 위 컬럼으로 분리하고 본문은 Markdown 문자열로 저
 
 프로젝트 공개 조건:
 
-1. `status = 'published'`.
-2. visibility가 public, anonymized, restricted 중 하나.
+1. `use_yn = 'Y'`.
+2. `disp_yn = 'Y'`.
 3. 개인 프로젝트이거나, 연결된 경력의 use_yn과 disp_yn이 모두 'Y'.
 
-`restricted`는 공개 가능한 개요·역할만 남긴 본문을 저장한다는 뜻이다. RLS는 행을 제한하므로 본문만 숨겨주지 않는다. 비공개 원본·내부 메모·실제 고객 식별자를 공개 행의 추가 컬럼에 저장하지 않는다. 화면에서 숨기는 것만으로는 API 노출을 막을 수 없다.
+RLS는 행을 제한하므로 본문만 숨겨주지 않는다. 익명화가 필요하면 저장 내용을 직접 익명화한다. 비공개 원본·내부 메모·실제 고객 식별자를 공개 행의 추가 컬럼에 저장하지 않는다. 화면에서 숨기는 것만으로는 API 노출을 막을 수 없다.
 
 3차에서는 지정한 Supabase Auth 사용자 ID만 관리자 권한을 갖게 설계한다. 모든 authenticated 사용자에게 쓰기를 허용하지 않는다. 로그인 화면·서버 쓰기 처리와 RLS를 함께 검증하고, 관리자 명부는 일반 사용자가 수정할 수 없게 한다. 세부 테이블과 정책 SQL은 관리자 단계에서 확정한다.
 
@@ -211,12 +218,12 @@ DB 도입 후 개발 환경이라는 이유로 초안을 공개 조회하지 않
 1. 엔씨엘 소속·직책은 사용자 지정값으로 입력 완료했다. 향후 미확인 경력 항목은 NULL로 유지한다.
 2. 프로젝트 5개의 엔씨엘 소속 연결, 메인 항목별 disp_yn, 회사 경력의 use_yn·disp_yn을 이전 전에 확인한다.
 3. 원본 6개 MDX의 요약·배열·기간·본문을 대조하며 이전한다. 반복 실행이 관리자 편집을 덮어쓰지 않도록 최초 이전 후 자동 재시드를 금지한다.
-4. 익명 요청으로 발행 콘텐츠만 반환되는지, draft/private/비공개 부모의 프로젝트가 목록과 slug 직접 조회 모두에서 제외되는지 확인한다.
+4. 익명 요청으로 공개 콘텐츠만 반환되는지, 미사용·미노출·비공개 부모의 프로젝트가 목록과 slug 직접 조회 모두에서 제외되는지 확인한다.
 5. site_profile의 Y/Y 조합만 공개되고 Y/N·N/Y·N/N은 제외되는지 확인한다. 익명·일반 로그인 사용자의 쓰기가 차단되는지 확인한다.
 6. 제약조건 위반(30자 초과 type·label, Y/N 외 플래그, 단일 항목 중복, 중복 slug, 잘못된 기간, 회사 FK 누락, 참조 중 경력 삭제)을 확인한다.
 7. MDX와 Markdown 렌더링을 비교하고 반응형 사이드바·404·빈 목록을 확인한다.
 8. DB 읽기 오류와 정상적인 빈 목록을 구분한다. 전환 후 MDX로 조용히 되돌아가는 fallback은 두지 않는다.
-9. 관리자 도입 시 캐시 갱신 방식을 정한다. 현재 안에는 공개본을 유지하면서 새 개정 초안을 편집하는 버전 관리가 없으며, published 행 수정은 캐시 갱신 후 공개 화면에 반영된다. 초안으로 바꾸면 해당 콘텐츠는 비공개가 된다.
+9. 관리자 도입 시 캐시 갱신 방식을 정한다. 현재 안에는 공개본을 유지하면서 새 개정 초안을 편집하는 버전 관리가 없으며, 공개 행 수정은 캐시 갱신 후 공개 화면에 반영된다. disp_yn을 N으로 바꾸면 해당 프로젝트는 비공개가 된다.
 
 ## 참고
 
@@ -226,4 +233,4 @@ DB 도입 후 개발 환경이라는 이유로 초안을 공개 조회하지 않
 
 site_profile은 Supabase의 create_site_profile 마이그레이션으로 생성했다. 적용 SQL 사본은 `docs/sql/create-site-profile.sql`에 보관한다. anon·authenticated 역할 모두 Y/Y 행만 조회 가능하며 INSERT·UPDATE·DELETE·TRUNCATE 권한은 없다. 검증용 데이터는 롤백했고 실제 콘텐츠 9건을 저장·공개하여 메인 화면에 연결했다. services의 공개 조회는 Publishable key만 사용하며 요청 시 데이터를 읽는다.
 
-`npm run test:profile -- http://127.0.0.1:3000`과 `npm run test:experiences -- http://127.0.0.1:3000`으로 실제 DB 응답과 화면을 대조할 수 있다(Node 22.18 이상). 테스트는 공개 데이터가 있는 상태를 전제로 하며 DB를 수정하지 않는다. 현재 /work와 MDX 프로젝트는 경력 id=1에 연결되어 있다. 프로젝트 DB 이전 시 experience_id 기반 관계로 교체한다. about_content·projects 생성과 관리자 인증·편집은 후속 작업이다.
+`npm run test:profile -- http://127.0.0.1:3000`과 `npm run test:experiences -- http://127.0.0.1:3000`으로 실제 DB 응답과 화면을 대조할 수 있다(Node 22.18 이상). 테스트는 공개 데이터가 있는 상태를 전제로 하며 DB를 수정하지 않는다. 현재 /work는 경력 id=1을 표시하며 프로젝트는 experience_id로 연결한다. node scripts/check-work.mjs http://127.0.0.1:3000으로 공개 프로젝트 5개의 렌더링과 404를 검증한다. about_content 생성과 관리자 인증·편집은 후속 작업이다.

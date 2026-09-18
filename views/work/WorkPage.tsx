@@ -1,8 +1,8 @@
 import Link from "next/link";
-import type { ProjectMeta } from "@/lib/content/projects";
+import type { Project } from "@/services/projects";
 import type { Experience } from "@/services/experiences";
 
-export default function WorkPage({ projects, experience }: { projects: ProjectMeta[]; experience: Experience }) {
+export default function WorkPage({ projects, experience }: { projects: Project[]; experience: Experience }) {
   const affiliation = [experience.department, experience.position].filter(Boolean).join(" | ");
   return (
     <article>
@@ -30,7 +30,7 @@ export default function WorkPage({ projects, experience }: { projects: ProjectMe
               <div>
                 <h3 className="font-medium transition-colors group-hover:text-accent">{project.title}</h3>
                 <p className="mt-2 text-sm leading-7 text-muted">{project.summary}</p>
-                <p className="mt-3 text-xs text-muted">작업 기록 기간 · {project.period}</p>
+                <p className="mt-3 text-xs text-muted">참여 기간 · {project.period}</p>
               </div>
               <span aria-hidden="true" className="hidden text-accent sm:block">↗</span>
             </Link>

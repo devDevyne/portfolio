@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getProjects } from "@/lib/content/projects";
+import { getProjects } from "@/services/projects";
 import WorkPage from "@/views/work/WorkPage";
 import { connection } from "next/server";
 import { getExperience, WORK_EXPERIENCE_ID } from "@/services/experiences";
@@ -10,6 +10,6 @@ export default async function Page() {
   await connection();
   const experience = await getExperience(WORK_EXPERIENCE_ID);
   if (!experience) return <p className="py-10 text-sm text-muted">공개된 경력이 없습니다.</p>;
-  const projects = await getProjects();
-  return <WorkPage experience={experience} projects={projects.map(({ meta }) => meta)} />;
+  const projects = await getProjects(WORK_EXPERIENCE_ID);
+  return <WorkPage experience={experience} projects={projects} />;
 }

@@ -1,19 +1,17 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { ProjectMeta } from "@/lib/content/projects";
+import type { Project } from "@/services/projects";
 
-export default function ProjectPage({ project, children, companyName }: { project: ProjectMeta; children: ReactNode; companyName: string }) {
+export default function ProjectPage({ project, children, companyName }: { project: Project; children: ReactNode; companyName: string }) {
   return (
     <article>
       <Link href="/work" className="text-xs text-muted hover:text-accent">{companyName} / 프로젝트</Link>
-      {project.status === "draft" && <p className="mt-5 border-l-2 border-accent bg-accent/5 px-4 py-3 text-xs leading-6 text-accent">개발용 초안 미리보기 · 배포 시에는 공개된 프로젝트만 표시됩니다.</p>}
       <h1 className="mt-6 text-3xl leading-snug font-semibold tracking-tight sm:text-4xl">{project.title}</h1>
       <p className="mt-5 text-base leading-8 text-muted">{project.summary}</p>
       <dl className="mt-8 grid gap-6 border-y border-border py-6 sm:grid-cols-2">
-        <div><dt className="text-xs text-muted">작업 기록 기간</dt><dd className="mt-2 text-sm">{project.period}</dd></div>
+        <div><dt className="text-xs text-muted">참여 기간</dt><dd className="mt-2 text-sm">{project.period}</dd></div>
         <div><dt className="text-xs text-muted">담당 역할</dt><dd className="mt-2 text-sm leading-7">{project.role}</dd></div>
       </dl>
-      <p className="mt-3 text-xs leading-6 text-muted">{project.periodBasis}이며, 연속 투입 기간과는 구분합니다.</p>
       <ul aria-label="사용 기술" className="mt-6 flex flex-wrap gap-2">
         {project.technologies.map((technology) => <li key={technology} className="border border-border px-3 py-1.5 text-xs text-muted">{technology}</li>)}
       </ul>
