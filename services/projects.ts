@@ -19,7 +19,7 @@ export type Project = {
   period: string;
 };
 
-export const getProjects = cache(async (experienceId: number): Promise<Project[]> => {
+export const getProjects = cache(async (experienceId?: number): Promise<Project[]> => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key?.startsWith("sb_publishable_")) {
@@ -33,11 +33,11 @@ export const getProjects = cache(async (experienceId: number): Promise<Project[]
       }),
     },
   });
-  const { data, error } = await supabase.from("projects")
+  let query = supabase.from("projects")
     .select("id, experience_id, category, slug, title, summary, start_month, end_month, role, technologies, highlights, body_markdown, sort_order")
-    .eq("experience_id", experienceId)
-    .order("sort_order").order("id")
-    .returns<Omit<Project, "period">[]>();
+    .order("sort_order").order("id");
+  if (experienceId !== undefined) query = query.eq("experience_id", experienceId);
+  const { data, error } = await query.returns<Omit<Project, "period">[]>();
   if (error) throw new Error(`프로젝트를 조회하지 못했습니다 (${error.code || "network_error"}).`);
   const month = (value: string) => value.slice(0, 7).replace("-", ".");
   return (data ?? []).map((project) => ({

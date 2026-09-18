@@ -234,3 +234,7 @@ DB 도입 후 개발 환경이라는 이유로 초안을 공개 조회하지 않
 site_profile은 Supabase의 create_site_profile 마이그레이션으로 생성했다. 적용 SQL 사본은 `docs/sql/create-site-profile.sql`에 보관한다. anon·authenticated 역할 모두 Y/Y 행만 조회 가능하며 INSERT·UPDATE·DELETE·TRUNCATE 권한은 없다. 검증용 데이터는 롤백했고 실제 콘텐츠 9건을 저장·공개하여 메인 화면에 연결했다. services의 공개 조회는 Publishable key만 사용하며 요청 시 데이터를 읽는다.
 
 `npm run test:profile -- http://127.0.0.1:3000`과 `npm run test:experiences -- http://127.0.0.1:3000`으로 실제 DB 응답과 화면을 대조할 수 있다(Node 22.18 이상). 테스트는 공개 데이터가 있는 상태를 전제로 하며 DB를 수정하지 않는다. 현재 /work는 경력 id=1을 표시하며 프로젝트는 experience_id로 연결한다. node scripts/check-work.mjs http://127.0.0.1:3000으로 공개 프로젝트 5개의 렌더링과 404를 검증한다. about_content 생성과 관리자 인증·편집은 후속 작업이다.
+
+## 개인 프로젝트 추가 (2026-09-18)
+
+개인 포트폴리오 웹사이트를 slug=portfolio, category=personal, experience_id=NULL, 시작 월 2026-09, 종료 월 NULL, use_yn=Y, disp_yn=Y로 저장했다. 개인 프로젝트는 사이드바에서 회사 프로젝트와 구분하며 상세 조회는 회사 경력에 종속되지 않는다. /work의 회사 참여 목록은 기존 experience_id 조건을 유지한다. 관리자 인증·편집과 성능 최적화는 향후 계획으로 기재했다.

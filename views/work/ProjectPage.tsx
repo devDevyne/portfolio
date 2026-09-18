@@ -2,10 +2,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Project } from "@/services/projects";
 
-export default function ProjectPage({ project, children, companyName }: { project: Project; children: ReactNode; companyName: string }) {
+export default function ProjectPage({ project, children, companyName }: { project: Project; children: ReactNode; companyName: string | null }) {
   return (
     <article>
-      <Link href="/work" className="text-xs text-muted hover:text-accent">{companyName} / 프로젝트</Link>
+      <Link href="/work" className="text-xs text-muted hover:text-accent">{project.category === "personal" ? "개인 프로젝트" : `${companyName} / 프로젝트`}</Link>
       <h1 className="mt-6 text-3xl leading-snug font-semibold tracking-tight sm:text-4xl">{project.title}</h1>
       <p className="mt-5 text-base leading-8 text-muted">{project.summary}</p>
       <dl className="mt-8 grid gap-6 border-y border-border py-6 sm:grid-cols-2">

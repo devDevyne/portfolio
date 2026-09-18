@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 type ProjectLink = { slug: string; title: string };
 
-export default function WorkSidebar({ projects, experience }: { projects: ProjectLink[]; experience: { company_name: string; period: string } | null }) {
+export default function WorkSidebar({ projects, personalProjects, experience }: { projects: ProjectLink[]; personalProjects: ProjectLink[]; experience: { company_name: string; period: string } | null }) {
   const pathname = usePathname();
   const menu = (
     <nav aria-label="경력 및 프로젝트 탐색">
@@ -31,7 +31,19 @@ export default function WorkSidebar({ projects, experience }: { projects: Projec
       </ul>
       <div className="mt-9">
         <p className="text-[10px] font-medium tracking-[0.2em] text-muted">PERSONAL PROJECTS</p>
-        <p className="mt-4 px-4 text-xs leading-6 text-muted">개인 프로젝트 준비 중</p>
+        <ul className="mt-4 space-y-1 border-l border-border pl-3">
+          {personalProjects.map(({ slug, title }) => {
+            const href = `/work/projects/${slug}`;
+            const selected = pathname === href;
+            return <li key={slug}>
+              <Link href={href} aria-current={selected ? "page" : undefined}
+                className={`flex min-h-11 items-center rounded-sm px-3 py-2 text-[13px] leading-6 transition-colors hover:bg-accent/5 hover:text-accent ${selected ? "bg-accent/5 font-medium text-accent" : "text-muted"}`}>
+                {title}
+              </Link>
+            </li>;
+          })}
+        </ul>
+        {personalProjects.length === 0 && <p className="mt-4 px-4 text-xs leading-6 text-muted">개인 프로젝트 준비 중</p>}
       </div>
     </nav>
   );
