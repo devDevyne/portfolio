@@ -16,7 +16,7 @@ Java/Spring 백엔드 개발과 React 프론트엔드 설계·개발 경험을 �
 
 ## 기술 구성
 
-- Next.js 16.3.5 App Router, React 19.2.8, TypeScript
+- Next.js 16.4.3 App Router, React 19.2.8, TypeScript
 - Tailwind CSS 4, ESLint 9
 - Supabase PostgreSQL, `@supabase/supabase-js`
 - `react-markdown`, `rehype-raw`, `rehype-sanitize`
@@ -24,7 +24,7 @@ Java/Spring 백엔드 개발과 React 프론트엔드 설계·개발 경험을 �
 
 ## 로컬 실행
 
-검증 스크립트의 TypeScript 직접 실행을 위해 Node.js 22.18 이상을 사용합니다. 개발·빌드는 Node.js 24 환경에서 확인했습니다.
+로컬 개발은 Node.js **26.12.1 이상의 26.x**를 사용합니다. 현재 macOS 환경은 기존 Homebrew `node` 패키지를 `brew upgrade node`로 업데이트하며, `node -v`로 실제 선택된 버전을 확인합니다. 별도 버전 관리자는 사용하지 않습니다. 검증 스크립트의 TypeScript 직접 실행에는 최소 Node.js 22.18이 필요합니다.
 
 ```bash
 npm ci
@@ -112,6 +112,8 @@ node scripts/check-work.mjs http://localhost:3000
 ## 배포
 
 Vercel에 Git 저장소를 연결하고 Next.js 프리셋과 루트 디렉터리 `./`를 사용합니다. `.env.local`은 업로드되지 않으므로 위 두 환경변수를 Vercel에도 등록합니다.
+
+로컬 Node.js 26과 배포 런타임은 별개입니다. [Vercel 공식 지원 버전](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions)은 현재 **24.x(기본값), 22.x**이며 26.x는 지원 목록에 없습니다. 배포는 프로젝트 설정에서 지원 버전(권장 24.x)을 사용하고, 로컬 요구사항을 `package.json`의 `engines.node: 26.x`로 강제하지 않습니다. 이번 로컬 업데이트는 Vercel 설정이나 기존 배포를 변경하지 않으므로, 배포 전 해당 런타임에서 별도 검증해야 합니다.
 
 - Production Branch를 `main`으로 설정하면 해당 브랜치에 push·merge할 때 운영 배포가 실행됩니다.
 - 다른 브랜치는 Preview 배포로 확인할 수 있습니다. Preview에서도 DB를 사용하려면 해당 환경에 환경변수를 등록합니다.
